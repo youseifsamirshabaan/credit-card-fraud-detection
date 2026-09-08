@@ -1,0 +1,15 @@
+FROM bde2020/spark-submit:3.3.0-hadoop3.3
+
+USER root
+
+RUN apk add --no-cache \
+    gcc \
+    g++ \
+    gfortran \
+    musl-dev \
+    openblas-dev \
+    lapack-dev
+
+RUN pip3 install --no-cache-dir numpy==1.21.6
+
+USER spark
