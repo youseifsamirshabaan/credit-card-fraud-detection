@@ -41,7 +41,7 @@ from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when
 
-RAW_PATH = "hdfs://namenode:9000/raw/credit_card_fraud.csv"
+RAW_PATH = "hdfs://namenode:9000/raw/creditcard_transactions_historical.csv"
 MODEL_PATH = "hdfs://namenode:9000/models/fraud_model"
 FEATURES_DIR = "hdfs://namenode:9000/features"
 
@@ -127,7 +127,7 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
 
     print(f"Reading dataset from {RAW_PATH}...")
-    df = spark.read.option("header", "true").option("inferSchema", "true").csv(RAW_PATH)
+    df = spark.read.option("header", "true").option("inferSchema", "true").csv(RAW_PATH).limit(1000000)  # Limit to 1M rows for faster training in this example
 
     # Cast numeric columns to double
     for c in NUMERIC_COLS:

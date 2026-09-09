@@ -61,8 +61,14 @@ services:
   # -------------------------------------------------------------------------
   # Spark (standalone cluster: 1 master + 1 worker)
   # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
+  # Spark (standalone cluster: 1 master + 1 worker)
+  # -------------------------------------------------------------------------
   spark-master:
-    image: bde2020/spark-master:${SPARK_IMAGE_TAG}
+    build:
+      context: ./spark
+      dockerfile: Dockerfile.master
+    image: custom-spark-master:3.3.0
     container_name: spark-master
     hostname: spark-master
     restart: unless-stopped
@@ -76,7 +82,10 @@ services:
     networks: [bigdata-net]
 
   spark-worker:
-    image: bde2020/spark-worker:${SPARK_IMAGE_TAG}
+    build:
+      context: ./spark
+      dockerfile: Dockerfile.worker
+    image: custom-spark-worker:3.3.0
     container_name: spark-worker
     hostname: spark-worker
     restart: unless-stopped
