@@ -1,8 +1,10 @@
-﻿.env
+.env
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 data/*.csv
+data/raw/
+*.backup
 data/*.zip
 data/*.parquet
 airflow/logs/
