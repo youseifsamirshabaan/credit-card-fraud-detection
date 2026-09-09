@@ -1,0 +1,13 @@
+[33mcommit 70c1d6935c071fff7c9fdcf1e4911190cffb9258[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: haniamedhat31 <haniamedhat31@gmail.com>
+Date:   Wed Sep 9 16:38:25 2026 +0300
+
+    feat(ml): complete fraud detection model training, evaluation, and pipeline export
+    
+    - Completed feature engineering and Random Forest model (0.7194 AUC)
+    - Confirmed theoretical ceiling (0.7198 AUC) on synthetic distribution
+    - Exported combined PipelineModel to HDFS (/models/fraud_model)
+    - Created v_fraud_alerts view in PostgreSQL for Superset visualization
+
+ jupyter/notebooks/fraud_detection_ml.ipynb | 760 [32m+++++++++++++++++++++++++++++[m
+ 1 file changed, 760 insertions(+)

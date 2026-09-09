@@ -1,200 +1,697 @@
 """
-Lab: Real-time fraud detection pipeline (Spark Structured Streaming + MLlib)
-------------------------------------------------------------------------------
-Proposal mapping: "3. PROCESSING LAYER" end-to-end, in one continuously
-running job (runs as its own container - see `spark-streaming-job` in
-docker-compose.yml, no manual submission needed):
+Lab: Real-time fraud detection pipeline
+Spark Structured Streaming + MLlib
 
-  transactions_raw (Kafka)
-        |  clean + validate + feature engineer
+Flow:
+Kafka transactions_raw
+        |
         v
-  transactions_stream (Kafka) + hdfs:///stream        <- cleaned/featurized
-        |  Spark MLlib inference (loads hdfs:///models/fraud_model,
-        |  trained by train_fraud_model.py)
+New 34-column schema
+        |
         v
-  fraud_predictions (Kafka) + hdfs:///predictions + postgres-dw.predictions
-        |  join prediction back onto the full record
+Cleaning + Feature Engineering
+        |
         v
-  enriched_transactions (Kafka) + hdfs:///processed
-        |  filter high-risk predictions
+Compatibility layer for Hania's ML model
+        |
         v
-  alerts (Kafka) + postgres-dw.alerts
-
-Requires the fraud model to already exist at hdfs:///models/fraud_model -
-run train_fraud_model.py at least once first (the `airflow` weekly DAG does
-this automatically; you can also trigger it manually, see README).
-
-Run (this is what the `spark-streaming-job` compose service already does
-for you automatically on `docker compose up`):
-    docker exec -it spark-master spark-submit \
-        --master spark://spark-master:7077 \
-        --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0,org.postgresql:postgresql:42.7.3 \
-        /opt/spark-apps/streaming_fraud_pipeline.py
+fraud model inference
+        |
+        +--> transactions_stream
+        +--> fraud_predictions
+        +--> enriched_transactions
+        +--> alerts
+        +--> HDFS
+        +--> PostgreSQL
 """
+
 import os
 
 from pyspark.ml import PipelineModel
 from pyspark.ml.functions import vector_to_array
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, hour, lit, struct, to_json, to_timestamp, when
-from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
+from pyspark.sql.functions import (
+    col,
+    from_json,
+    hour,
+    lit,
+    struct,
+    to_json,
+    to_timestamp,
+    when,
+)
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
-KAFKA_BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "kafka:9092")
-RAW_TOPIC = os.environ.get("RAW_TOPIC", "transactions_raw")
-STREAM_TOPIC = os.environ.get("STREAM_TOPIC", "transactions_stream")
-PREDICTIONS_TOPIC = os.environ.get("PREDICTIONS_TOPIC", "fraud_predictions")
-ENRICHED_TOPIC = os.environ.get("ENRICHED_TOPIC", "enriched_transactions")
-ALERTS_TOPIC = os.environ.get("ALERTS_TOPIC", "alerts")
 
-MODEL_PATH = "hdfs://namenode:9000/models/fraud_model"
-STREAM_HDFS_PATH = "hdfs://namenode:9000/stream"
-PROCESSED_HDFS_PATH = "hdfs://namenode:9000/processed"
-PREDICTIONS_HDFS_PATH = "hdfs://namenode:9000/predictions"
-CHECKPOINT_BASE = "hdfs://namenode:9000/checkpoints/fraud_pipeline"
+# ============================================================
+# CONFIG
+# ============================================================
 
-POSTGRES_DW_DB = os.environ.get("POSTGRES_DW_DB", "frauddb")
-POSTGRES_DW_USER = os.environ.get("POSTGRES_DW_USER", "fraud_etl")
-POSTGRES_DW_PASSWORD = os.environ.get("POSTGRES_DW_PASSWORD", "fraud_etl")
-JDBC_URL = f"jdbc:postgresql://postgres-dw:5432/{POSTGRES_DW_DB}"
+KAFKA_BOOTSTRAP = os.environ.get(
+    "KAFKA_BOOTSTRAP",
+    "kafka:9092",
+)
+
+RAW_TOPIC = os.environ.get(
+    "RAW_TOPIC",
+    "transactions_raw",
+)
+
+STREAM_TOPIC = os.environ.get(
+    "STREAM_TOPIC",
+    "transactions_stream",
+)
+
+PREDICTIONS_TOPIC = os.environ.get(
+    "PREDICTIONS_TOPIC",
+    "fraud_predictions",
+)
+
+ENRICHED_TOPIC = os.environ.get(
+    "ENRICHED_TOPIC",
+    "enriched_transactions",
+)
+
+ALERTS_TOPIC = os.environ.get(
+    "ALERTS_TOPIC",
+    "alerts",
+)
+
+MODEL_PATH = (
+    "hdfs://namenode:9000/models/fraud_model"
+)
+
+STREAM_HDFS_PATH = (
+    "hdfs://namenode:9000/stream"
+)
+
+PROCESSED_HDFS_PATH = (
+    "hdfs://namenode:9000/processed"
+)
+
+PREDICTIONS_HDFS_PATH = (
+    "hdfs://namenode:9000/predictions"
+)
+
+CHECKPOINT_BASE = (
+    "hdfs://namenode:9000/checkpoints/fraud_pipeline"
+)
+
+POSTGRES_DW_DB = os.environ.get(
+    "POSTGRES_DW_DB",
+    "frauddb",
+)
+
+POSTGRES_DW_USER = os.environ.get(
+    "POSTGRES_DW_USER",
+    "fraud_etl",
+)
+
+POSTGRES_DW_PASSWORD = os.environ.get(
+    "POSTGRES_DW_PASSWORD",
+    "fraud_etl",
+)
+
+JDBC_URL = (
+    f"jdbc:postgresql://postgres-dw:5432/{POSTGRES_DW_DB}"
+)
+
 JDBC_PROPS = {
     "user": POSTGRES_DW_USER,
     "password": POSTGRES_DW_PASSWORD,
     "driver": "org.postgresql.Driver",
 }
 
-ALERT_THRESHOLD = float(os.environ.get("ALERT_THRESHOLD", "0.7"))
+ALERT_THRESHOLD = float(
+    os.environ.get("ALERT_THRESHOLD", "0.7")
+)
 
-SCHEMA = StructType([
-    StructField("transaction_id", StringType()),
-    StructField("timestamp", StringType()),
-    StructField("amount", DoubleType()),
-    StructField("merchant_id", StringType()),
+MAX_REASONABLE_AMOUNT = float(
+    os.environ.get("MAX_REASONABLE_AMOUNT", "20000")
+)
+
+
+# ============================================================
+# NEW DATASET SCHEMA
+# ============================================================
+
+NEW_SCHEMA = StructType([
+    StructField("transaction_amount", StringType()),
+    StructField("transaction_amount_bin", StringType()),
+    StructField("avg_amount_deviation_sigma", StringType()),
     StructField("merchant_category", StringType()),
-    StructField("card_type", StringType()),
-    StructField("country", StringType()),
-    StructField("city", StringType()),
-    StructField("device_id", StringType()),
-    StructField("ip_address", StringType()),
-    StructField("fraud_label", IntegerType()),
+    StructField("merchant_risk_score", StringType()),
+    StructField("merchant_category_vs_history", StringType()),
+    StructField("geo_velocity_kmh", StringType()),
+    StructField("geo_velocity_bin", StringType()),
+    StructField("geo_distance_km", StringType()),
+    StructField("geo_distance_bin", StringType()),
+    StructField("merchant_location", StringType()),
+    StructField("country_consistency", StringType()),
+    StructField("ip_address_type", StringType()),
+    StructField("device_fingerprint_match", StringType()),
+    StructField("session_duration_sec", StringType()),
+    StructField("session_duration_bin", StringType()),
+    StructField("network_carrier_type", StringType()),
+    StructField("cards_on_device_30d", StringType()),
+    StructField("cvv_match_status", StringType()),
+    StructField("three_ds_auth_result", StringType()),
+    StructField("tokenization_used", StringType()),
+    StructField("failed_attempts_before_success", StringType()),
+    StructField("transaction_velocity_1h", StringType()),
+    StructField("time_of_transaction", StringType()),
+    StructField("account_credential_change_recency", StringType()),
+    StructField("card_present_cnp", StringType()),
+    StructField("order_shipping_speed", StringType()),
+    StructField("account_age_days", StringType()),
+    StructField("chargeback_history_count", StringType()),
+    StructField("customer_id", StringType()),
+    StructField("transaction_id", StringType()),
+    StructField("segment", StringType()),
+    StructField("customer_type", StringType()),
+    StructField("is_fraud", StringType()),
+    StructField("event_timestamp", StringType()),
 ])
 
 
+# ============================================================
+# KAFKA OUTPUT
+# ============================================================
+
 def to_kafka(df, topic):
+
     (
-        df.select(to_json(struct(*df.columns)).alias("value"))
-        .write.format("kafka")
-        .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP)
-        .option("topic", topic)
+        df.select(
+            to_json(
+                struct(*df.columns)
+            ).alias("value")
+        )
+        .write
+        .format("kafka")
+        .option(
+            "kafka.bootstrap.servers",
+            KAFKA_BOOTSTRAP,
+        )
+        .option(
+            "topic",
+            topic,
+        )
         .save()
     )
 
 
+# ============================================================
+# MAIN
+# ============================================================
+
 def main():
-    spark = SparkSession.builder.appName("FraudStreamingPipeline").getOrCreate()
+
+    spark = (
+        SparkSession.builder
+        .appName("FraudStreamingPipeline")
+        .getOrCreate()
+    )
+
     spark.sparkContext.setLogLevel("WARN")
 
-    model = PipelineModel.load(MODEL_PATH)
+    print("Loading fraud model...")
+
+    model = PipelineModel.load(
+        MODEL_PATH
+    )
+
+    print(
+        f"Fraud model loaded from {MODEL_PATH}"
+    )
+
+
+    # ========================================================
+    # READ FROM KAFKA
+    # ========================================================
 
     raw = (
-        spark.readStream.format("kafka")
-        .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP)
-        .option("subscribe", RAW_TOPIC)
-        .option("startingOffsets", "latest")
+        spark.readStream
+        .format("kafka")
+        .option(
+            "kafka.bootstrap.servers",
+            KAFKA_BOOTSTRAP,
+        )
+        .option(
+            "subscribe",
+            RAW_TOPIC,
+        )
+        .option(
+            "startingOffsets",
+            "latest",
+        )
         .load()
     )
 
+
+    # ========================================================
+    # PARSE NEW 34-COLUMN SCHEMA
+    # ========================================================
+
     parsed = (
-        raw.selectExpr("CAST(value AS STRING) as json_str")
-        .select(from_json(col("json_str"), SCHEMA).alias("d"))
+        raw
+        .selectExpr(
+            "CAST(value AS STRING) AS json_str"
+        )
+        .select(
+            from_json(
+                col("json_str"),
+                NEW_SCHEMA,
+            ).alias("d")
+        )
         .select("d.*")
     )
 
-    # --- Data Cleaning & Validation + Feature Engineering -> "transactions_stream" ---
+
+    # ========================================================
+    # CLEANING + TYPE CONVERSION
+    # ========================================================
+
     cleaned = (
-        parsed.filter(col("amount").isNotNull() & (col("amount") >= 0))
-        .withColumn("event_time", to_timestamp(col("timestamp")))
-        .withColumn("txn_hour", hour(col("event_time")))
-        .withColumn("is_foreign", (col("country") != lit("EG")).cast("int"))
+        parsed
+
+        .filter(
+            col("transaction_id").isNotNull()
+        )
+
+        .withColumn(
+            "amount",
+            col("transaction_amount").cast(
+                DoubleType()
+            )
+        )
+
+        .withColumn(
+            "fraud_label",
+            col("is_fraud").cast(
+                IntegerType()
+            )
+        )
+
+        .withColumn(
+            "event_time",
+            to_timestamp(
+                col("event_timestamp")
+            )
+        )
+
+        .filter(
+            col("amount").isNotNull()
+        )
+
+        .filter(
+            col("amount") >= 0
+        )
+
+        .filter(
+            col("amount") <= MAX_REASONABLE_AMOUNT
+        )
+
+        .filter(
+            col("event_time").isNotNull()
+        )
+
+        .dropDuplicates(
+            ["transaction_id"]
+        )
+
+        .withColumn(
+            "txn_hour",
+            hour(col("event_time"))
+        )
     )
 
+
+    # ========================================================
+    # COMPATIBILITY LAYER
+    #
+    # Hania's model expects the old feature columns:
+    #
+    # amount
+    # merchant_category
+    # card_type
+    # country
+    # city
+    # device_id
+    # ip_address
+    # txn_hour
+    # is_foreign
+    #
+    # We preserve the NEW dataset and only create the
+    # compatibility columns required by the existing model.
+    # ========================================================
+
+    model_input = (
+        cleaned
+
+        # Direct mappings
+        .withColumn(
+            "timestamp",
+            col("event_timestamp")
+        )
+
+        .withColumn(
+            "merchant_id",
+            col("customer_id")
+        )
+
+        .withColumn(
+            "device_id",
+            col("customer_id")
+        )
+
+        .withColumn(
+            "ip_address",
+            col("ip_address_type")
+        )
+
+        # No direct card_type column exists in the new dataset.
+        .withColumn(
+            "card_type",
+            lit("unknown")
+        )
+
+        # No direct country column exists.
+        .withColumn(
+            "country",
+            lit("unknown")
+        )
+
+        # merchant_location is preserved as the closest
+        # location field available in the new dataset.
+        .withColumn(
+            "city",
+            col("merchant_location")
+        )
+
+        # Keep foreign flag neutral because the new dataset
+        # does not contain a direct country field.
+        .withColumn(
+            "is_foreign",
+            lit(0)
+        )
+    )
+
+
+    # ========================================================
+    # PROCESS EACH MICRO-BATCH
+    # ========================================================
+
     def process_batch(batch_df, batch_id):
+
         if batch_df.rdd.isEmpty():
-            print(f"[batch {batch_id}] empty, skipping")
+
+            print(
+                f"[batch {batch_id}] empty, skipping"
+            )
+
             return
+
+
         batch_df.persist()
-        print(f"[batch {batch_id}] {batch_df.count()} transactions")
 
-        # publish the cleaned/featurized stream + land it in the data lake
-        to_kafka(batch_df, STREAM_TOPIC)
-        batch_df.write.mode("append").parquet(STREAM_HDFS_PATH)
+        count = batch_df.count()
 
-        # --- Real-time Inference (Spark MLlib) ---
-        predicted = model.transform(batch_df)
-        predicted = predicted.withColumn(
-            "fraud_probability", vector_to_array(col("probability"))[1]
-        ).withColumnRenamed("prediction", "predicted_label")
+        print(
+            f"[batch {batch_id}] "
+            f"{count} transactions"
+        )
+
+
+        # ====================================================
+        # CLEANED / FEATURE-ENGINEERED STREAM
+        # ====================================================
+
+        to_kafka(
+            batch_df,
+            STREAM_TOPIC,
+        )
+
+        (
+            batch_df
+            .write
+            .mode("append")
+            .parquet(
+                STREAM_HDFS_PATH
+            )
+        )
+
+
+        # ====================================================
+        # ML INFERENCE
+        # ====================================================
+
+        batch_model_input = (
+            batch_df
+            .withColumn("timestamp", col("event_timestamp"))
+            .withColumn("merchant_id", col("customer_id"))
+            .withColumn("device_id", col("customer_id"))
+            .withColumn("ip_address", col("ip_address_type"))
+            .withColumn("card_type", lit("unknown"))
+            .withColumn("country", lit("unknown"))
+            .withColumn("city", col("merchant_location"))
+            .withColumn("is_foreign", lit(0))
+        )
+
+        predicted = model.transform(batch_model_input)
+
+        predicted = (
+            predicted
+            .withColumn(
+                "fraud_probability",
+                vector_to_array(
+                    col("probability")
+                )[1]
+            )
+            .withColumnRenamed(
+                "prediction",
+                "predicted_label"
+            )
+        )
+
+        # ====================================================
+        # PREDICTION RESULT
+        # ====================================================
 
         result = (
             predicted.select(
-                "transaction_id", "event_time", "amount", "merchant_id",
-                "merchant_category", "card_type", "country", "city",
-                "fraud_probability", "predicted_label", "fraud_label",
+                "transaction_id",
+                "event_time",
+                "amount",
+                "merchant_id",
+                "merchant_category",
+                "card_type",
+                "country",
+                "city",
+                "fraud_probability",
+                "predicted_label",
+                "fraud_label",
             )
-            .withColumnRenamed("fraud_label", "actual_label")
-            .withColumn("predicted_label", col("predicted_label").cast("int"))
+
+            .withColumnRenamed(
+                "fraud_label",
+                "actual_label"
+            )
+
+            .withColumn(
+                "predicted_label",
+                col("predicted_label").cast(
+                    "int"
+                )
+            )
         )
+
+
         result.persist()
 
-        result.write.mode("append").parquet(PREDICTIONS_HDFS_PATH)
-        to_kafka(result, PREDICTIONS_TOPIC)
+
+        # ====================================================
+        # HDFS PREDICTIONS
+        # ====================================================
+
         (
-            result.write.format("jdbc")
-            .option("url", JDBC_URL)
-            .option("dbtable", "predictions")
-            .options(**JDBC_PROPS)
+            result
+            .write
+            .mode("append")
+            .parquet(
+                PREDICTIONS_HDFS_PATH
+            )
+        )
+
+
+        # ====================================================
+        # KAFKA PREDICTIONS
+        # ====================================================
+
+        to_kafka(
+            result,
+            PREDICTIONS_TOPIC,
+        )
+
+
+        # ====================================================
+        # POSTGRES PREDICTIONS
+        # ====================================================
+
+        (
+            result
+            .write
+            .format("jdbc")
+            .option(
+                "url",
+                JDBC_URL,
+            )
+            .option(
+                "dbtable",
+                "predictions",
+            )
+            .options(
+                **JDBC_PROPS
+            )
             .mode("append")
             .save()
         )
 
-        # --- enriched_transactions: original fields + prediction ---
-        enriched = batch_df.join(
-            result.select("transaction_id", "fraud_probability", "predicted_label"),
-            "transaction_id",
-        )
-        to_kafka(enriched, ENRICHED_TOPIC)
-        enriched.write.mode("append").parquet(PROCESSED_HDFS_PATH)
 
-        # --- Alert Generation for High Risk transactions ---
+        # ====================================================
+        # ENRICHED TRANSACTIONS
+        # ====================================================
+
+        enriched = (
+            batch_df.join(
+                result.select(
+                    "transaction_id",
+                    "fraud_probability",
+                    "predicted_label",
+                ),
+                "transaction_id",
+            )
+        )
+
+
+        to_kafka(
+            enriched,
+            ENRICHED_TOPIC,
+        )
+
+
+        (
+            enriched
+            .write
+            .mode("append")
+            .parquet(
+                PROCESSED_HDFS_PATH
+            )
+        )
+
+
+        # ====================================================
+        # HIGH-RISK ALERTS
+        # ====================================================
+
         alerts = (
-            result.filter(col("fraud_probability") >= ALERT_THRESHOLD)
+            result
+
+            .filter(
+                col("fraud_probability")
+                >= ALERT_THRESHOLD
+            )
+
             .withColumn(
                 "risk_level",
-                when(col("fraud_probability") >= 0.9, "CRITICAL").otherwise("HIGH"),
+                when(
+                    col("fraud_probability")
+                    >= 0.9,
+                    "CRITICAL",
+                ).otherwise(
+                    "HIGH"
+                ),
             )
-            .select("transaction_id", "event_time", "risk_level", "fraud_probability", "amount", "country")
+
+            .select(
+                "transaction_id",
+                "event_time",
+                "risk_level",
+                "fraud_probability",
+                "amount",
+                "country",
+            )
         )
+
+
         if not alerts.rdd.isEmpty():
-            to_kafka(alerts, ALERTS_TOPIC)
+
+            to_kafka(
+                alerts,
+                ALERTS_TOPIC,
+            )
+
+
             (
-                alerts.write.format("jdbc")
-                .option("url", JDBC_URL)
-                .option("dbtable", "alerts")
-                .options(**JDBC_PROPS)
+                alerts
+                .write
+                .format("jdbc")
+                .option(
+                    "url",
+                    JDBC_URL,
+                )
+                .option(
+                    "dbtable",
+                    "alerts",
+                )
+                .options(
+                    **JDBC_PROPS
+                )
                 .mode("append")
                 .save()
             )
 
+
         result.unpersist()
         batch_df.unpersist()
 
+
+    # ========================================================
+    # START STREAMING QUERY
+    # ========================================================
+
     query = (
-        cleaned.writeStream.foreachBatch(process_batch)
-        .option("checkpointLocation", CHECKPOINT_BASE)
-        .trigger(processingTime="15 seconds")
+        cleaned.writeStream
+        .foreachBatch(
+            process_batch
+        )
+        .option(
+            "checkpointLocation",
+            CHECKPOINT_BASE,
+        )
+        .trigger(
+            processingTime="15 seconds"
+        )
         .start()
     )
+
+
+    print(
+        "Fraud streaming pipeline started."
+    )
+
     query.awaitTermination()
 
 
+# ============================================================
+# ENTRY POINT
+# ============================================================
+
 if __name__ == "__main__":
     main()
+
