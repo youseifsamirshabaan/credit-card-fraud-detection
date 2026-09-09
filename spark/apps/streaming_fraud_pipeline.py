@@ -34,7 +34,6 @@ from pyspark.sql.functions import (
     col,
     from_json,
     hour,
-    lit,
     struct,
     to_json,
     to_timestamp,
@@ -47,6 +46,19 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
+
+# Numeric columns that must be cast to DoubleType for the model
+MODEL_NUMERIC_COLS = [
+    "transaction_amount",
+    "avg_amount_deviation_sigma",
+    "geo_velocity_kmh",
+    "geo_distance_km",
+    "session_duration_sec",
+    "cards_on_device_30d",
+    "failed_attempts_before_success",
+    "account_age_days",
+    "chargeback_history_count",
+]
 
 
 # ============================================================
@@ -333,74 +345,12 @@ def main():
 
 
     # ========================================================
-    # COMPATIBILITY LAYER
-    #
-    # Hania's model expects the old feature columns:
-    #
-    # amount
-    # merchant_category
-    # card_type
-    # country
-    # city
-    # device_id
-    # ip_address
-    # txn_hour
-    # is_foreign
-    #
-    # We preserve the NEW dataset and only create the
-    # compatibility columns required by the existing model.
+    # The trained model reads the real 34-column schema
+    # directly. No compatibility mapping needed.
+    # Numeric columns must be explicitly cast to DoubleType.
     # ========================================================
-
-    model_input = (
-        cleaned
-
-        # Direct mappings
-        .withColumn(
-            "timestamp",
-            col("event_timestamp")
-        )
-
-        .withColumn(
-            "merchant_id",
-            col("customer_id")
-        )
-
-        .withColumn(
-            "device_id",
-            col("customer_id")
-        )
-
-        .withColumn(
-            "ip_address",
-            col("ip_address_type")
-        )
-
-        # No direct card_type column exists in the new dataset.
-        .withColumn(
-            "card_type",
-            lit("unknown")
-        )
-
-        # No direct country column exists.
-        .withColumn(
-            "country",
-            lit("unknown")
-        )
-
-        # merchant_location is preserved as the closest
-        # location field available in the new dataset.
-        .withColumn(
-            "city",
-            col("merchant_location")
-        )
-
-        # Keep foreign flag neutral because the new dataset
-        # does not contain a direct country field.
-        .withColumn(
-            "is_foreign",
-            lit(0)
-        )
-    )
+    # (model_input is now just cleaned with numeric casts,
+    #  applied per-batch inside process_batch)
 
 
     # ========================================================
@@ -449,19 +399,15 @@ def main():
 
         # ====================================================
         # ML INFERENCE
+        # Cast numeric columns to DoubleType to match training
+        # schema, then run the PipelineModel transform.
         # ====================================================
 
-        batch_model_input = (
-            batch_df
-            .withColumn("timestamp", col("event_timestamp"))
-            .withColumn("merchant_id", col("customer_id"))
-            .withColumn("device_id", col("customer_id"))
-            .withColumn("ip_address", col("ip_address_type"))
-            .withColumn("card_type", lit("unknown"))
-            .withColumn("country", lit("unknown"))
-            .withColumn("city", col("merchant_location"))
-            .withColumn("is_foreign", lit(0))
-        )
+        batch_model_input = batch_df
+        for _c in MODEL_NUMERIC_COLS:
+            batch_model_input = batch_model_input.withColumn(
+                _c, col(_c).cast(DoubleType())
+            )
 
         predicted = model.transform(batch_model_input)
 
@@ -488,11 +434,8 @@ def main():
                 "transaction_id",
                 "event_time",
                 "amount",
-                "merchant_id",
                 "merchant_category",
-                "card_type",
-                "country",
-                "city",
+                "merchant_location",
                 "fraud_probability",
                 "predicted_label",
                 "fraud_label",
@@ -624,7 +567,7 @@ def main():
                 "risk_level",
                 "fraud_probability",
                 "amount",
-                "country",
+                "merchant_location",
             )
         )
 
