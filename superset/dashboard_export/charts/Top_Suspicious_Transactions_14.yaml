@@ -1,0 +1,25 @@
+slice_name: Top Suspicious Transactions
+description: null
+certified_by: null
+certification_details: null
+viz_type: table
+params:
+  all_columns:
+  - transaction_id
+  - transaction_amount
+  - merchant_category
+  - merchant_location
+  - is_fraud
+  - event_time
+  page_size: 15
+  viz_type: table
+  datasource: 8__table
+query_context: '{"datasource": {"id": 8, "type": "table"}, "force": false, "queries":
+  [{"metrics": [], "columns": ["transaction_id", "transaction_amount", "merchant_category",
+  "merchant_location", "is_fraud", "event_time"], "groupby": [], "time_range": "No
+  filter", "row_limit": 15, "order_desc": true}], "result_format": "json", "result_type":
+  "full"}'
+cache_timeout: null
+uuid: 7803db4c-4e4b-4f22-86e5-33dcb77af033
+version: 1.0.0
+dataset_uuid: fdf341bf-53ef-4663-9371-bca8228cdb4b

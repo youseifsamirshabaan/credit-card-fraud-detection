@@ -1,0 +1,21 @@
+slice_name: Fraud Amount
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  metric:
+    expressionType: SQL
+    sqlExpression: SUM(fraud_amount)
+    label: Fraud Amount
+  header_font_size: 0.5
+  viz_type: big_number_total
+  datasource: 2__table
+query_context: '{"datasource": {"id": 2, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "SUM(fraud_amount)", "label":
+  "Fraud Amount"}], "columns": [], "groupby": [], "time_range": "No filter", "row_limit":
+  1}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: a72b4e0d-9e21-4634-b158-b37197c496ca
+version: 1.0.0
+dataset_uuid: 38eca818-0b9d-4767-9500-a6dbd26ddc88

@@ -1,0 +1,21 @@
+slice_name: Critical Alerts
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  metric:
+    expressionType: SQL
+    sqlExpression: COUNT(*)
+    label: Critical Alerts
+  header_font_size: 0.5
+  viz_type: big_number_total
+  datasource: 10__table
+query_context: '{"datasource": {"id": 10, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "COUNT(*)", "label": "Critical
+  Alerts"}], "columns": [], "groupby": [], "time_range": "No filter", "row_limit":
+  1}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 7e830d61-3014-4fa3-a40a-5ad5f6ffb693
+version: 1.0.0
+dataset_uuid: 0b4a83d0-206a-4897-bee5-dfea1e9dd452

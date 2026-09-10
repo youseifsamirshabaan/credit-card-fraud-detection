@@ -1,0 +1,29 @@
+slice_name: Transactions Over Time
+description: null
+certified_by: null
+certification_details: null
+viz_type: echarts_timeseries_line
+params:
+  granularity_sqla: txn_date
+  time_range: No filter
+  metrics:
+  - expressionType: SQL
+    sqlExpression: SUM(total_transactions)
+    label: Total Transactions
+  - expressionType: SQL
+    sqlExpression: SUM(fraud_transactions)
+    label: Fraud Transactions
+  x_axis_title: Date
+  y_axis_title: Volume
+  viz_type: echarts_timeseries_line
+  datasource: 3__table
+query_context: '{"datasource": {"id": 3, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "SUM(total_transactions)",
+  "label": "Total Transactions"}, {"expressionType": "SQL", "sqlExpression": "SUM(fraud_transactions)",
+  "label": "Fraud Transactions"}], "columns": [], "groupby": [], "granularity": "txn_date",
+  "time_grain_sqla": "P1D", "time_range": "No filter", "row_limit": 10000, "order_desc":
+  false}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 63977076-2a29-4434-93fe-666d2410e2e3
+version: 1.0.0
+dataset_uuid: e6a455cf-ccd3-4dc7-b0df-7e0a1dd8c100

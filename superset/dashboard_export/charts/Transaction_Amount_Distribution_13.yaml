@@ -1,0 +1,30 @@
+slice_name: Transaction Amount Distribution
+description: null
+certified_by: null
+certification_details: null
+viz_type: dist_bar
+params:
+  groupby:
+  - transaction_amount_bin
+  metrics:
+  - expressionType: SQL
+    sqlExpression: COUNT(CASE WHEN is_fraud = 1 THEN 1 END)
+    label: Fraud Txns
+  - expressionType: SQL
+    sqlExpression: COUNT(CASE WHEN is_fraud = 0 THEN 1 END)
+    label: Legit Txns
+  show_legend: true
+  show_bar_value: false
+  bar_stacked: true
+  viz_type: dist_bar
+  datasource: 1__table
+query_context: '{"datasource": {"id": 1, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "COUNT(CASE WHEN is_fraud
+  = 1 THEN 1 END)", "label": "Fraud Txns"}, {"expressionType": "SQL", "sqlExpression":
+  "COUNT(CASE WHEN is_fraud = 0 THEN 1 END)", "label": "Legit Txns"}], "columns":
+  [], "groupby": ["transaction_amount_bin"], "time_range": "No filter", "row_limit":
+  1000, "order_desc": true}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 59e8aa98-b565-4ff0-8ef7-0a275e13b586
+version: 1.0.0
+dataset_uuid: 1c3bd1c7-e04e-4fb7-945f-bae702980853

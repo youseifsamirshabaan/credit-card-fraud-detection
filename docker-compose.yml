@@ -366,5 +366,8 @@ services:
       - superset_home:/app/superset_home
       - ./superset/bootstrap.sh:/app/bootstrap.sh:ro
       - ./superset/import_dashboard.py:/app/import_dashboard.py:ro
+      - ./superset/dashboard_export.zip:/app/dashboard_export.zip:ro
+      - ./superset/dashboard_export:/app/dashboard_export:ro
     networks: [bigdata-net]
+
 

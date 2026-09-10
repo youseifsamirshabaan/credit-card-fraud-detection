@@ -1,0 +1,25 @@
+slice_name: Fraud vs Legitimate Transactions
+description: null
+certified_by: null
+certification_details: null
+viz_type: pie
+params:
+  groupby:
+  - is_fraud
+  metric:
+    expressionType: SQL
+    sqlExpression: COUNT(*)
+    label: Transactions
+  donut: true
+  show_legend: true
+  labels_outside: true
+  viz_type: pie
+  datasource: 1__table
+query_context: '{"datasource": {"id": 1, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "COUNT(*)", "label": "Transactions"}],
+  "columns": [], "groupby": ["is_fraud"], "time_range": "No filter", "row_limit":
+  1000, "order_desc": true}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 9b9f9b6f-f1cf-43b5-9688-735cb493310a
+version: 1.0.0
+dataset_uuid: 1c3bd1c7-e04e-4fb7-945f-bae702980853

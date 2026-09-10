@@ -1,0 +1,16 @@
+database_name: Fraud Serving DB
+sqlalchemy_uri: postgresql+psycopg2://fraud_etl:fraud_etl@postgres-dw:5432/frauddb
+cache_timeout: null
+expose_in_sqllab: true
+allow_run_async: false
+allow_ctas: false
+allow_cvas: false
+allow_dml: false
+allow_file_upload: false
+extra:
+  metadata_params: {}
+  engine_params: {}
+  metadata_cache_timeout: {}
+  schemas_allowed_for_file_upload: []
+uuid: 78663a1a-5576-420a-8783-518caa641ab1
+version: 1.0.0

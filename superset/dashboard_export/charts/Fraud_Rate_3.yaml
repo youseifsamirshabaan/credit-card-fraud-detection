@@ -1,0 +1,21 @@
+slice_name: Fraud Rate
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  metric:
+    expressionType: SQL
+    sqlExpression: SUM(fraud_rate_pct)
+    label: Fraud Rate %
+  header_font_size: 0.5
+  viz_type: big_number_total
+  datasource: 2__table
+query_context: '{"datasource": {"id": 2, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "SUM(fraud_rate_pct)",
+  "label": "Fraud Rate %"}], "columns": [], "groupby": [], "time_range": "No filter",
+  "row_limit": 1}], "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 9a711ede-03a7-4f9e-82be-4c27b6a1e5b6
+version: 1.0.0
+dataset_uuid: 38eca818-0b9d-4767-9500-a6dbd26ddc88

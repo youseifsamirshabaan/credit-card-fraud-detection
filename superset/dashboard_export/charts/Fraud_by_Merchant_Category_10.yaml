@@ -1,0 +1,26 @@
+slice_name: Fraud by Merchant Category
+description: null
+certified_by: null
+certification_details: null
+viz_type: dist_bar
+params:
+  groupby:
+  - merchant_category
+  metrics:
+  - expressionType: SQL
+    sqlExpression: SUM(is_fraud)
+    label: Fraud Transactions
+  show_legend: false
+  show_bar_value: true
+  orientation: horizontal
+  viz_type: dist_bar
+  datasource: 1__table
+query_context: '{"datasource": {"id": 1, "type": "table"}, "force": false, "queries":
+  [{"metrics": [{"expressionType": "SQL", "sqlExpression": "SUM(is_fraud)", "label":
+  "Fraud Transactions"}], "columns": [], "groupby": ["merchant_category"], "time_range":
+  "No filter", "row_limit": 1000, "order_desc": true}], "result_format": "json", "result_type":
+  "full"}'
+cache_timeout: null
+uuid: 8da3444c-f215-4766-aee6-5fad7da50b7f
+version: 1.0.0
+dataset_uuid: 1c3bd1c7-e04e-4fb7-945f-bae702980853

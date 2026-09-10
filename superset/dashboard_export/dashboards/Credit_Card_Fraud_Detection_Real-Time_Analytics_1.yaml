@@ -1,0 +1,724 @@
+dashboard_title: "Credit Card Fraud Detection \u2014 Real-Time Analytics"
+description: null
+css: "\n            /* ========================================= */\n            /*\
+  \ 1. TOP SUPERSET HEADER NAVIGATION         */\n            /* =========================================\
+  \ */\n            .navbar, header, .top-nav, [role=\"navigation\"], .ant-menu, .ant-menu-root,\
+  \ .ant-menu-horizontal {\n                background-color: #111111 !important;\n\
+  \                background: #111111 !important;\n                border-bottom:\
+  \ 1px solid #333333 !important;\n                color: #FFFFFF !important;\n  \
+  \          }\n            .navbar a, .navbar .nav-link, .ant-menu-item, .ant-menu-item\
+  \ a, .ant-menu-submenu-title, header a {\n                color: #E5E7EB !important;\n\
+  \            }\n            .navbar a:hover, .navbar .nav-link:hover, .ant-menu-item:hover,\
+  \ .ant-menu-item a:hover, .ant-menu-submenu-title:hover, header a:hover {\n    \
+  \            color: #FFFFFF !important;\n            }\n            /* Try to make\
+  \ the logo visible if it's dark by default */\n            .navbar-brand img, header\
+  \ img {\n                filter: brightness(0) invert(1) !important;\n         \
+  \   }\n\n            /* ========================================= */\n         \
+  \   /* 2. BACKGROUNDS AND CONTAINERS             */\n            /* =========================================\
+  \ */\n            body, .dashboard, .dashboard-content, .grid-container, .dashboard-content-editable,\
+  \ .dragdroppable, .dragdroppable-content, #app, .app {\n                background-color:\
+  \ #111111 !important;\n                background: #111111 !important;\n       \
+  \         color: #FFFFFF !important;\n                font-family: 'Inter', -apple-system,\
+  \ BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;\n            }\n\
+  \n            .dashboard-header {\n                background-color: #111111 !important;\n\
+  \                background: #111111 !important;\n                border-bottom:\
+  \ none !important;\n                padding: 16px 24px !important;\n           \
+  \ }\n            .dashboard-component-chart-holder {\n                background-color:\
+  \ #181818 !important;\n                background: #181818 !important;\n       \
+  \         border: 1px solid #333333 !important;\n                border-radius:\
+  \ 8px !important;\n                box-shadow: none !important;\n              \
+  \  padding: 8px !important;\n            }\n\n            /* =========================================\
+  \ */\n            /* 3. TITLES AND HEADINGS                    */\n            /*\
+  \ ========================================= */\n            /* Dashboard Title */\n\
+  \            .dashboard-header .dashboard-header-title, .editable-title input {\n\
+  \                color: #FFFFFF !important;\n                font-weight: 800 !important;\n\
+  \                font-size: 26px !important;\n            }\n            /* Chart\
+  \ and Section Titles */\n            .chart-header .header-title, .header-title,\
+  \ .slice_name, h1, h2, h3, h4, h5, h6, .dashboard-markdown h1, .dashboard-markdown\
+  \ h2, .dashboard-markdown h3 {\n                color: #FFFFFF !important;\n   \
+  \             font-weight: 700 !important;\n            }\n            /* KPI Labels\
+  \ */\n            .big_number_total .subheader-line, .big_number .subheader-line\
+  \ {\n                color: #FFFFFF !important;\n                font-weight: 600\
+  \ !important;\n            }\n            /* KPI Values */\n            .big_number_total\
+  \ .header-line, .big_number .header-line {\n                color: #22D3EE !important;\
+  \ /* Bright cyan */\n                font-size: 2.5rem !important;\n           \
+  \     font-weight: 700 !important;\n            }\n\n            /* =========================================\
+  \ */\n            /* 4. CHART LABELS, LEGENDS, AXES            */\n            /*\
+  \ ========================================= */\n            text, tspan, .axis text,\
+  \ .tick text, g.tick text, .nv-axis text, .recharts-legend-item-text, .recharts-cartesian-axis-tick-value\
+  \ {\n                fill: #E5E7EB !important;\n                color: #E5E7EB !important;\n\
+  \            }\n            .nv-legend text, .echarts-legend text, .legend text\
+  \ {\n                fill: #FFFFFF !important;\n                color: #FFFFFF !important;\n\
+  \            }\n\n            /* ========================================= */\n\
+  \            /* 5. TABLES                                 */\n            /* =========================================\
+  \ */\n            .table, .table th, .dashboard-component-tabs, .table-chart-table,\
+  \ .dt-bootstrap4 {\n                background-color: #181818 !important;\n    \
+  \            color: #FFFFFF !important;\n            }\n            .table th, .table-chart-table\
+  \ th, .dt-bootstrap4 th {\n                background-color: #111111 !important;\n\
+  \                border-bottom: 2px solid #333333 !important;\n                color:\
+  \ #FFFFFF !important;\n                font-weight: 700 !important;\n          \
+  \  }\n            .table td, .table-chart-table td, .dt-bootstrap4 td {\n      \
+  \          border-bottom: 1px solid #333333 !important;\n                color:\
+  \ #E5E7EB !important;\n            }\n            .table-chart-table tbody tr:hover\
+  \ td, .dt-bootstrap4 tbody tr:hover td, .table tbody tr:hover td {\n           \
+  \     background-color: #202020 !important;\n                color: #FFFFFF !important;\n\
+  \            }\n\n            /* ========================================= */\n\
+  \            /* 6. TOOLTIPS                               */\n            /* =========================================\
+  \ */\n            .tooltip-inner, .nvtooltip, .echarts-tooltip, .ant-tooltip-inner\
+  \ {\n                background-color: #202020 !important;\n                color:\
+  \ #FFFFFF !important;\n                border: 1px solid #333333 !important;\n \
+  \           }\n            .nvtooltip text, .echarts-tooltip text {\n          \
+  \      fill: #FFFFFF !important;\n                color: #FFFFFF !important;\n \
+  \           }\n\n            /* ========================================= */\n \
+  \           /* 7. FILTERS & FORMS                        */\n            /* =========================================\
+  \ */\n            .filter-title, .ant-typography-secondary, .text-muted, .ant-form-item-label\
+  \ label, .filter-control-name {\n                color: #E5E7EB !important;\n  \
+  \          }\n            .ant-select-selector, .Select__control, .ant-input {\n\
+  \                background-color: #202020 !important;\n                border-color:\
+  \ #333333 !important;\n                color: #FFFFFF !important;\n            }\n\
+  \            .ant-select-selection-item, .Select__single-value, .ant-select-item-option-content\
+  \ {\n                color: #FFFFFF !important;\n            }\n            .ant-select-dropdown,\
+  \ .Select__menu {\n                background-color: #202020 !important;\n     \
+  \           color: #FFFFFF !important;\n            }\n\n            /* Remove all\
+  \ black text globally in content */\n            * {\n                text-shadow:\
+  \ none !important;\n            }\n            \n            /* =========================================\
+  \ */\n            /* EXTRA FIX: CHART TITLES (FORCE WHITE)     */\n            /*\
+  \ ========================================= */\n            .chart-title, \n   \
+  \         .chart-header-title, \n            .header-title, \n            .header-title\
+  \ span,\n            .dashboard-component-chart-title,\n            .dashboard-component-header\
+  \ h1,\n            .dashboard-component-header h2,\n            .dashboard-component-header\
+  \ h3,\n            .dashboard-component-header h4,\n            .dashboard-component-header\
+  \ h5,\n            .dashboard-component-header h6,\n            .dashboard-component-header\
+  \ .header-title,\n            .dashboard-component-header span,\n            .slice_name,\
+  \ \n            .editable-title input,\n            .dashboard-header .dashboard-header-title,\n\
+  \            .chart-header .header-title {\n                color: #FFFFFF !important;\n\
+  \                font-weight: 700 !important;\n                fill: #FFFFFF !important;\n\
+  \                text-shadow: none !important;\n            }\n\n            /*\
+  \ ========================================= */\n            /* EXTRA FIX: WHITE\
+  \ DASHBOARD HEADER BAR     */\n            /* =========================================\
+  \ */\n            .dashboard-header, \n            .header-with-actions, \n    \
+  \        .dashboard .header, \n            .dashboard-builder-header, \n       \
+  \     .dashboard-content-top,\n            .dashboard-page-header,\n           \
+  \ [data-test=\"dashboard-header\"] {\n                background-color: #111111\
+  \ !important;\n                background: #111111 !important;\n               \
+  \ border-bottom: 1px solid #333333 !important;\n            }\n            \n  \
+  \          /* ========================================= */\n            /* EXTRA\
+  \ FIX: PERMANENT WHITE TITLES         */\n            /* =========================================\
+  \ */\n            .chart-title, \n            .chart-header-title, \n          \
+  \  .header-title, \n            .header-title span,\n            .header-title a,\n\
+  \            .dashboard-component-chart-title,\n            .dashboard-component-header\
+  \ h1,\n            .dashboard-component-header h2,\n            .dashboard-component-header\
+  \ h3,\n            .dashboard-component-header h4,\n            .dashboard-component-header\
+  \ h5,\n            .dashboard-component-header h6,\n            .dashboard-component-header\
+  \ .header-title,\n            .dashboard-component-header span,\n            .dashboard-component-header\
+  \ a,\n            .slice_name, \n            .slice_name a,\n            .editable-title\
+  \ input,\n            .dashboard-header .dashboard-header-title,\n            .chart-header\
+  \ .header-title,\n            .chart-header .header-title a,\n            .big_number_total\
+  \ .subheader-line, \n            .big_number .subheader-line,\n            .dashboard-component-chart-holder\
+  \ a,\n            .dashboard-component-chart-holder span {\n                color:\
+  \ #FFFFFF !important;\n                opacity: 1 !important;\n                visibility:\
+  \ visible !important;\n                -webkit-text-fill-color: #FFFFFF !important;\n\
+  \            }\n            "
+slug: credit-card-fraud-analytics
+certified_by: null
+certification_details: null
+published: true
+uuid: b8cef21e-f4cf-4ecd-8efd-36c2b6de9fb7
+position:
+  DASHBOARD_VERSION_KEY: v2
+  ROOT_ID:
+    type: ROOT
+    id: ROOT_ID
+    children:
+    - GRID_ID
+  GRID_ID:
+    type: GRID
+    id: GRID_ID
+    children:
+    - ROW_KPIS
+    - ROW_CHART_0
+    - ROW_CHART_1
+    - ROW_CHART_2
+    - ROW_CHART_3
+    - ROW-N-4P3S1KHT
+    parents:
+    - ROOT_ID
+  ROW_KPIS:
+    type: ROW
+    id: ROW_KPIS
+    children:
+    - CHART_1
+    - CHART_2
+    - CHART_3
+    - CHART_4
+    - CHART_5
+    - CHART_6
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    meta:
+      background: BACKGROUND_TRANSPARENT
+  CHART_1:
+    type: CHART
+    id: CHART_1
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 1
+      sliceName: Total Transactions
+  CHART_2:
+    type: CHART
+    id: CHART_2
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 2
+      sliceName: Fraud Transactions
+  CHART_3:
+    type: CHART
+    id: CHART_3
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 3
+      sliceName: Fraud Rate
+  CHART_4:
+    type: CHART
+    id: CHART_4
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 4
+      sliceName: Total Transaction Amount
+  CHART_5:
+    type: CHART
+    id: CHART_5
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 5
+      sliceName: Fraud Amount
+  CHART_6:
+    type: CHART
+    id: CHART_6
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_KPIS
+    meta:
+      width: 2
+      height: 20
+      chartId: 6
+      sliceName: Critical Alerts
+  ROW_CHART_0:
+    type: ROW
+    id: ROW_CHART_0
+    children:
+    - CHART_7
+    - CHART_8
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    meta:
+      background: BACKGROUND_TRANSPARENT
+  CHART_7:
+    type: CHART
+    id: CHART_7
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_0
+    meta:
+      width: 4
+      height: 50
+      chartId: 7
+      sliceName: Fraud vs Legitimate Transactions
+  CHART_8:
+    type: CHART
+    id: CHART_8
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_0
+    meta:
+      width: 8
+      height: 50
+      chartId: 8
+      sliceName: Transactions Over Time
+  ROW_CHART_1:
+    type: ROW
+    id: ROW_CHART_1
+    children:
+    - CHART_9
+    - CHART_10
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    meta:
+      background: BACKGROUND_TRANSPARENT
+  CHART_9:
+    type: CHART
+    id: CHART_9
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_1
+    meta:
+      width: 4
+      height: 50
+      chartId: 9
+      sliceName: Fraud Amount vs Legitimate Amount
+  CHART_10:
+    type: CHART
+    id: CHART_10
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_1
+    meta:
+      width: 8
+      height: 50
+      chartId: 10
+      sliceName: Fraud by Merchant Category
+  ROW_CHART_2:
+    type: ROW
+    id: ROW_CHART_2
+    children:
+    - CHART_11
+    - CHART_12
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    meta:
+      background: BACKGROUND_TRANSPARENT
+  CHART_11:
+    type: CHART
+    id: CHART_11
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_2
+    meta:
+      width: 6
+      height: 50
+      chartId: 11
+      sliceName: Fraud by Merchant Location
+  CHART_12:
+    type: CHART
+    id: CHART_12
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_2
+    meta:
+      width: 6
+      height: 50
+      chartId: 12
+      sliceName: Fraud by Risk Level
+  ROW_CHART_3:
+    type: ROW
+    id: ROW_CHART_3
+    children:
+    - CHART_13
+    - CHART_14
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    meta:
+      background: BACKGROUND_TRANSPARENT
+  CHART_13:
+    type: CHART
+    id: CHART_13
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_3
+    meta:
+      width: 6
+      height: 50
+      chartId: 13
+      sliceName: Transaction Amount Distribution
+  CHART_14:
+    type: CHART
+    id: CHART_14
+    children: []
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW_CHART_3
+    meta:
+      width: 6
+      height: 50
+      chartId: 14
+      sliceName: Top Suspicious Transactions
+  ROW-N-4P3S1KHT:
+    children:
+    - CHART-M7VSXXGW
+    - CHART-7DERDNTQ
+    - CHART-O8ONKJZ3
+    - CHART-YOWPFW3M
+    - CHART-QEOVNF23
+    - CHART-7NBSMD5A
+    - CHART-JN3L27GH
+    - CHART-PJV1NXS4
+    - CHART-HJ4DNMAQ
+    - CHART-OZYMA5DC
+    - CHART-DSGBPQ7E
+    - CHART-RXDNSSLG
+    - CHART-OIJE39H6
+    - CHART-5XB3LJQJ
+    id: ROW-N-4P3S1KHT
+    meta:
+      '0': ROOT_ID
+      background: BACKGROUND_TRANSPARENT
+    type: ROW
+    parents:
+    - ROOT_ID
+    - GRID_ID
+  CHART-M7VSXXGW:
+    children: []
+    id: CHART-M7VSXXGW
+    meta:
+      chartId: 14
+      height: 50
+      sliceName: Top Suspicious Transactions
+      uuid: 7803db4c-4e4b-4f22-86e5-33dcb77af033
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-7DERDNTQ:
+    children: []
+    id: CHART-7DERDNTQ
+    meta:
+      chartId: 9
+      height: 50
+      sliceName: Fraud Amount vs Legitimate Amount
+      uuid: bfc98a88-f4a2-4687-bbe8-28024a642106
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-O8ONKJZ3:
+    children: []
+    id: CHART-O8ONKJZ3
+    meta:
+      chartId: 1
+      height: 50
+      sliceName: Total Transactions
+      uuid: ed5e3e59-1170-44a2-a030-700b9acf287c
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-YOWPFW3M:
+    children: []
+    id: CHART-YOWPFW3M
+    meta:
+      chartId: 13
+      height: 50
+      sliceName: Transaction Amount Distribution
+      uuid: 59e8aa98-b565-4ff0-8ef7-0a275e13b586
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-QEOVNF23:
+    children: []
+    id: CHART-QEOVNF23
+    meta:
+      chartId: 11
+      height: 50
+      sliceName: Fraud by Merchant Location
+      uuid: b40954e9-a0e4-4929-94e6-c63371a4eaef
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-7NBSMD5A:
+    children: []
+    id: CHART-7NBSMD5A
+    meta:
+      chartId: 2
+      height: 50
+      sliceName: Fraud Transactions
+      uuid: c1ecd8f2-3d63-4347-bae2-b9e74e4e39c1
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-JN3L27GH:
+    children: []
+    id: CHART-JN3L27GH
+    meta:
+      chartId: 6
+      height: 50
+      sliceName: Critical Alerts
+      uuid: 7e830d61-3014-4fa3-a40a-5ad5f6ffb693
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-PJV1NXS4:
+    children: []
+    id: CHART-PJV1NXS4
+    meta:
+      chartId: 5
+      height: 50
+      sliceName: Fraud Amount
+      uuid: a72b4e0d-9e21-4634-b158-b37197c496ca
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-HJ4DNMAQ:
+    children: []
+    id: CHART-HJ4DNMAQ
+    meta:
+      chartId: 4
+      height: 50
+      sliceName: Total Transaction Amount
+      uuid: 576a6600-701a-4c28-9929-0547adefd6ad
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-OZYMA5DC:
+    children: []
+    id: CHART-OZYMA5DC
+    meta:
+      chartId: 3
+      height: 50
+      sliceName: Fraud Rate
+      uuid: 9a711ede-03a7-4f9e-82be-4c27b6a1e5b6
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-DSGBPQ7E:
+    children: []
+    id: CHART-DSGBPQ7E
+    meta:
+      chartId: 10
+      height: 50
+      sliceName: Fraud by Merchant Category
+      uuid: 8da3444c-f215-4766-aee6-5fad7da50b7f
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-RXDNSSLG:
+    children: []
+    id: CHART-RXDNSSLG
+    meta:
+      chartId: 12
+      height: 50
+      sliceName: Fraud by Risk Level
+      uuid: beab02fe-af4d-47ea-b439-566feeb9a033
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-OIJE39H6:
+    children: []
+    id: CHART-OIJE39H6
+    meta:
+      chartId: 7
+      height: 50
+      sliceName: Fraud vs Legitimate Transactions
+      uuid: 9b9f9b6f-f1cf-43b5-9688-735cb493310a
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+  CHART-5XB3LJQJ:
+    children: []
+    id: CHART-5XB3LJQJ
+    meta:
+      chartId: 8
+      height: 50
+      sliceName: Transactions Over Time
+      uuid: 63977076-2a29-4434-93fe-666d2410e2e3
+      width: 4
+    type: CHART
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-N-4P3S1KHT
+metadata:
+  label_colors:
+    '0': '#35C7C0'
+    '1': '#FF5A5F'
+    Fraud Txns: '#FF5A5F'
+    Legit Txns: '#35C7C0'
+    Fraud Transactions: '#FF5A5F'
+    Total Transactions: '#35C7C0'
+    Fraud Rate %: '#FF5A5F'
+    Total Transaction Amount: '#35C7C0'
+    Fraud Amount: '#FF5A5F'
+  color_scheme: supersetColors
+  chart_configuration:
+    '7':
+      id: 7
+      crossFilters:
+        scope: global
+        chartsInScope:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+    '8':
+      id: 8
+      crossFilters:
+        scope: global
+        chartsInScope:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+    '14':
+      id: 14
+      crossFilters:
+        scope: global
+        chartsInScope:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+  global_chart_configuration:
+    scope:
+      rootPath:
+      - ROOT_ID
+      excluded: []
+    chartsInScope:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+  color_scheme_domain:
+  - '#1FA8C9'
+  - '#454E7C'
+  - '#5AC189'
+  - '#FF7F44'
+  - '#666666'
+  - '#E04355'
+  - '#FCC700'
+  - '#A868B7'
+  - '#3CCCCB'
+  - '#A38F79'
+  - '#8FD3E4'
+  - '#A1A6BD'
+  - '#ACE1C4'
+  - '#FEC0A1'
+  - '#B2B2B2'
+  - '#EFA1AA'
+  - '#FDE380'
+  - '#D3B3DA'
+  - '#9EE5E5'
+  - '#D1C6BC'
+  map_label_colors:
+    Total Amount: '#1FA8C9'
+  shared_label_colors:
+  - Fraud Transactions
+  timed_refresh_immune_slices: []
+  expanded_slices: {}
+  refresh_frequency: 0
+  cross_filters_enabled: true
+  native_filter_configuration: []
+version: 1.0.0
