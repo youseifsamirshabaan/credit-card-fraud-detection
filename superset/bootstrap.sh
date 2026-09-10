@@ -58,4 +58,12 @@ with app.app_context():
         print(f"Created '{name}' connection -> {uri}")
 PYEOF
 
+echo "Initializing datasets, charts, and dark theme dashboard..."
+if [ -f "/app/import_dashboard.py" ]; then
+    python3 /app/import_dashboard.py
+else
+    echo "Notice: /app/import_dashboard.py not mounted, skipping dashboard import."
+fi
+
 echo "Superset bootstrap complete."
+

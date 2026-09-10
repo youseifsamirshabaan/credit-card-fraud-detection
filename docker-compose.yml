@@ -365,4 +365,6 @@ services:
     volumes:
       - superset_home:/app/superset_home
       - ./superset/bootstrap.sh:/app/bootstrap.sh:ro
+      - ./superset/import_dashboard.py:/app/import_dashboard.py:ro
     networks: [bigdata-net]
+
