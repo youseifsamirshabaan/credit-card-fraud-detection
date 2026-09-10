@@ -196,6 +196,7 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./spark/apps:/opt/airflow/spark-apps
     networks: [bigdata-net]
 
   airflow-webserver:
@@ -214,6 +215,7 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./spark/apps:/opt/airflow/spark-apps
     networks: [bigdata-net]
 
   airflow-scheduler:
@@ -230,6 +232,7 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./spark/apps:/opt/airflow/spark-apps
     networks: [bigdata-net]
 
   # -------------------------------------------------------------------------
