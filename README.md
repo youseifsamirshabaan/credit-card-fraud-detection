@@ -1,108 +1,84 @@
-# Real-Time Credit Card Fraud Detection System
+# Credit Card Fraud Detection System
 
-A real-time **Credit Card Fraud Detection System** built using Big Data technologies, Machine Learning, and a scalable data-processing architecture.
+##  Overview
 
-The system ingests transaction data through **Apache Kafka**, processes it using **Apache Spark Structured Streaming**, applies a trained **Spark MLlib** model for fraud prediction, stores data in **HDFS and PostgreSQL**, and provides analytics through **Apache Superset**. **Apache Airflow** is used for workflow orchestration and model retraining.
+A Big Data and Machine Learning system for detecting potentially fraudulent credit card transactions through a real-time streaming pipeline.
+
+The system combines **Kafka, Apache Spark, HDFS, PostgreSQL, Apache Superset, Airflow, Docker, and Machine Learning** into one end-to-end architecture.
+
+The main objective is to ingest transaction events, process them in real time, apply a trained fraud detection model, store the results, and provide a monitoring dashboard.
 
 ---
 
-## Project Overview
-
-Credit card fraud detection requires processing large volumes of transactions while identifying suspicious activity with low latency.
-
-This project implements an end-to-end Big Data pipeline that can:
-
-* Generate and ingest transaction data.
-* Stream transactions through Kafka.
-* Process and transform transactions using Spark.
-* Perform feature engineering.
-* Apply a Machine Learning model for fraud prediction.
-* Generate fraud alerts for high-risk transactions.
-* Store raw and processed data in HDFS.
-* Store prediction results in PostgreSQL.
-* Visualize fraud analytics using Superset.
-* Orchestrate scheduled workflows using Airflow.
-
-### End-to-End Flow
+##  System Architecture
 
 ```text
-                    ┌──────────────────┐
-                    │     Producer     │
-                    │ Python Simulator │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │      Kafka       │
-                    │ transactions_raw │
-                    └────────┬─────────┘
-                             │
-                             ▼
-              ┌─────────────────────────────┐
-              │      Spark Streaming        │
-              │                             │
-              │  • Data Cleaning            │
-              │  • Feature Engineering      │
-              │  • MLlib Inference          │
-              │  • Fraud Detection          │
-              │  • Alert Generation         │
-              └─────────────┬───────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              │             │             │
-              ▼             ▼             ▼
-          ┌────────┐   ┌──────────┐   ┌──────────┐
-          │  HDFS  │   │PostgreSQL│   │  Kafka   │
-          │  Data  │   │ Serving  │   │ Predictions│
-          │  Lake  │   │    DB    │   │ & Alerts │
-          └────────┘   └─────┬────┘   └──────────┘
+                    ┌─────────────────────┐
+                    │  Transaction CSV    │
+                    │   Data Source        │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │  Python Producer    │
+                    │  Streaming Events   │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │       Kafka         │
+                    │ transactions_raw    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+              ┌────────────────────────────────┐
+              │       Spark Structured         │
+              │          Streaming             │
+              │                                │
+              │ Cleaning + Feature Engineering │
+              │ + ML Inference                 │
+              └───────────────┬────────────────┘
+                              │
+               ┌──────────────┼──────────────┐
+               │              │              │
+               ▼              ▼              ▼
+        ┌────────────┐  ┌────────────┐  ┌─────────────┐
+        │    HDFS    │  │ PostgreSQL │  │    Kafka    │
+        │ Predictions│  │ Predictions│  │ Predictions │
+        └────────────┘  └─────┬──────┘  └─────────────┘
                               │
                               ▼
-                       ┌────────────┐
-                       │  Superset  │
-                       │ Dashboards │
-                       └────────────┘
+                       ┌─────────────┐
+                       │  Superset   │
+                       │  Dashboard  │
+                       └─────────────┘
 
-                     ┌────────────┐
-                     │  Airflow   │
-                     │Orchestration│
-                     └────────────┘
+                 ┌─────────────────────┐
+                 │       Airflow       │
+                 │ Weekly Orchestration│
+                 └──────────┬──────────┘
+                            │
+                            ▼
+                    Spark Model Training
 ```
 
 ---
 
-##  Architecture
+##  Technologies
 
-The project is organized into several layers:
-
-| Layer             | Technology                        | Responsibility                                            |
-| ----------------- | --------------------------------- | --------------------------------------------------------- |
-| Data Generation   | Python                            | Generate historical and real-time transactions            |
-| Data Ingestion    | Apache Kafka                      | Stream transactions through Kafka topics                  |
-| Stream Processing | Apache Spark Structured Streaming | Clean, transform, and process transactions                |
-| Machine Learning  | Spark MLlib                       | Train and apply the fraud detection model                 |
-| Data Lake         | HDFS                              | Store raw, processed, feature, model, and prediction data |
-| Serving Database  | PostgreSQL                        | Store predictions and analytics data                      |
-| Visualization     | Apache Superset                   | Build fraud analytics dashboards                          |
-| Orchestration     | Apache Airflow                    | Schedule and orchestrate data workflows                   |
-| Development       | Jupyter                           | Interactive data exploration and Spark development        |
-| Deployment        | Docker Compose                    | Run the complete platform as containers                   |
-
----
-
-##  Technology Stack
-
-* **Python**
-* **Apache Kafka**
-* **Apache Spark 3.3.0**
-* **Spark Structured Streaming**
-* **Spark MLlib**
-* **Apache Hadoop / HDFS**
-* **Apache Airflow**
-* **PostgreSQL**
-* **Apache Superset**
-* **JupyterLab**
-* **Docker & Docker Compose**
+| Technology              | Purpose                                         |
+| ----------------------- | ----------------------------------------------- |
+| Python                  | Data producer and application logic             |
+| Apache Kafka            | Real-time event ingestion and streaming         |
+| Apache Spark            | Distributed processing and streaming            |
+| Spark MLlib             | Fraud classification model                      |
+| HDFS                    | Distributed data storage                        |
+| PostgreSQL              | Analytical serving layer                        |
+| Apache Superset         | Fraud monitoring dashboard                      |
+| Apache Airflow          | Pipeline orchestration and scheduled retraining |
+| Docker / Docker Compose | Containerization and service management         |
+| Jupyter                 | Development and experimentation                 |
+| Kafka UI                | Kafka monitoring                                |
 
 ---
 
@@ -111,37 +87,22 @@ The project is organized into several layers:
 ```text
 credit-card-fraud-detection/
 │
-├── airflow/
-│   ├── dags/
-│   │   ├── pipeline_fraud_detection.py
-│   │   └── pipeline_hdfs_kafka_spark.py
-│   └── docker/
-│
-├── data/
-│   └── README.md
-│
-├── docs/
-│   └── PROJECT_PLAN.md
-│
-├── hadoop/
-│   └── hadoop.env
-│
-├── jupyter/
-│   ├── Dockerfile
-│   └── notebooks/
-│
-├── kafka/
-│   └── create_topics.sh
-│
-├── postgres-dw/
-│   └── init.sql
+├── docker-compose.yml
+├── .env
+├── README.md
 │
 ├── producer/
 │   ├── producer.py
 │   ├── Dockerfile
 │   └── requirements.txt
 │
+├── kafka/
+│   └── create_topics.sh
+│
 ├── spark/
+│   ├── Dockerfile
+│   ├── Dockerfile.master
+│   ├── Dockerfile.worker
 │   └── apps/
 │       ├── train_fraud_model.py
 │       ├── streaming_fraud_pipeline.py
@@ -149,144 +110,193 @@ credit-card-fraud-detection/
 │       ├── batch_wordcount.py
 │       └── spark_sql_demo.py
 │
+├── hadoop/
+│   └── hadoop.env
+│
+├── postgres-dw/
+│   └── init.sql
+│
 ├── superset/
 │   ├── Dockerfile
 │   ├── bootstrap.sh
 │   └── superset_config.py
 │
-├── .gitignore
-├── docker-compose.yml
-└── README.md
+├── airflow/
+│   ├── dags/
+│   │   ├── pipeline_fraud_detection.py
+│   │   └── pipeline_hdfs_kafka_spark.py
+│   └── docker/
+│
+├── jupyter/
+│   ├── Dockerfile
+│   └── notebooks/
+│
+└── data/
+    └── README.md
 ```
 
 ---
 
-##  Data Pipeline
+##  Data Flow
 
-### 1. Data Generation
+### 1. Data Source
 
-The Python producer generates transaction data for both:
+The system uses a historical credit card transaction dataset stored locally and mounted into the Producer container.
 
-* Historical batch processing.
-* Continuous real-time streaming.
+The dataset contains transaction and behavioral features such as:
 
-Historical data is stored in HDFS under:
+* Transaction amount
+* Merchant category
+* Merchant risk score
+* Geographic velocity
+* Geographic distance
+* Device fingerprint match
+* CVV status
+* 3-D Secure authentication result
+* Transaction velocity
+* Failed attempts
+* Account age
+* Chargeback history
+* Customer information
+* Fraud label
+
+The raw historical dataset is stored in HDFS under:
 
 ```text
-/raw
+/raw/creditcard_transactions_historical.csv
 ```
 
-Real-time transactions are sent to Kafka:
+---
+
+### 2. Python Producer
+
+The Producer reads the transaction CSV incrementally and publishes transactions to Kafka.
+
+Each event contains the transaction features together with an event timestamp.
+
+Kafka topic:
 
 ```text
 transactions_raw
 ```
 
+The Producer simulates real-time transaction arrival rather than loading the entire dataset into Kafka at once.
+
 ---
 
-### 2. Kafka Ingestion
+### 3. Apache Kafka
 
 Kafka acts as the real-time ingestion layer.
 
-The system creates the following topics:
+Main topics:
 
 ```text
 transactions_raw
 transactions_stream
+enriched_transactions
 fraud_predictions
 alerts
-enriched_transactions
 ```
 
-Each topic is configured with multiple partitions to demonstrate distributed streaming concepts.
+The `transactions_raw` topic is configured with multiple partitions to support parallel processing.
 
 ---
 
-### 3. Spark Structured Streaming
+### 4. Spark Structured Streaming
 
-The main streaming application is:
-
-```text
-spark/apps/streaming_fraud_pipeline.py
-```
+Spark continuously consumes transactions from Kafka.
 
 The streaming pipeline performs:
 
-```text
-Kafka
-  ↓
-JSON Parsing
-  ↓
-Data Cleaning
-  ↓
-Feature Engineering
-  ↓
-MLlib Prediction
-  ↓
-Fraud Classification
-  ↓
-Predictions + Alerts
-  ↓
-HDFS / PostgreSQL / Kafka
-```
+1. Reading Kafka events
+2. Parsing transaction data
+3. Data cleaning
+4. Feature preparation
+5. Loading the trained ML model
+6. Fraud prediction
+7. Generating fraud probabilities
+8. Writing predictions to downstream systems
 
-The pipeline continuously processes incoming transactions and applies the trained fraud detection model.
+The streaming application loads the model from:
+
+```text
+hdfs://namenode:9000/models/fraud_model
+```
 
 ---
 
 ##  Machine Learning
 
-The model training application is:
+The project uses a **Random Forest Classifier** implemented with Spark MLlib.
+
+The model uses categorical and numerical transaction features.
+
+### Categorical features
+
+Examples include:
 
 ```text
-spark/apps/train_fraud_model.py
+merchant_category
+merchant_risk_score
+geo_velocity_bin
+geo_distance_bin
+merchant_location
+country_consistency
+ip_address_type
+device_fingerprint_match
+cvv_match_status
+three_ds_auth_result
+tokenization_used
+time_of_transaction
+card_present_cnp
+order_shipping_speed
 ```
 
-The project uses **Spark MLlib** for model training and evaluation.
+### Numerical features
 
-The current training pipeline uses **Logistic Regression** and stores the trained model in HDFS:
+Examples include:
+
+```text
+transaction_amount
+avg_amount_deviation_sigma
+geo_velocity_kmh
+geo_distance_km
+session_duration_sec
+cards_on_device_30d
+failed_attempts_before_success
+account_age_days
+chargeback_history_count
+```
+
+Categorical features are transformed using:
+
+```text
+StringIndexer → OneHotEncoder
+```
+
+and combined with numerical features using:
+
+```text
+VectorAssembler
+```
+
+The final pipeline contains a **Random Forest Classifier**.
+
+The trained model is saved to:
 
 ```text
 /models/fraud_model
 ```
 
-### Model Evaluation
-
-During the project integration test, the trained Logistic Regression model achieved:
-
-| Metric             | Result |
-| ------------------ | -----: |
-| AUC                | 0.7203 |
-| Accuracy           | 0.9240 |
-| Weighted Precision | 0.8538 |
-| Weighted Recall    | 0.9240 |
-| F1 Score           | 0.8875 |
-
-These results are based on the historical data used during the integration test.
-
 ---
 
-##  Fraud Alerts
+##  Storage Layer
 
-When the streaming model identifies a transaction as high risk, the system generates an alert.
+### HDFS
 
-Alerts are published to the Kafka topic:
+HDFS is used for distributed storage of raw and processed data.
 
-```text
-alerts
-```
-
-and are also available through the downstream storage layer for analytics.
-
-This allows the system to support near real-time fraud monitoring.
-
----
-
-##  HDFS Data Lake
-
-HDFS is used as the project's distributed storage layer.
-
-The main directories are:
+Main directories:
 
 ```text
 /raw
@@ -295,457 +305,359 @@ The main directories are:
 /features
 /models
 /predictions
+/checkpoints
 ```
-
-### Storage Responsibilities
-
-| Directory      | Purpose                         |
-| -------------- | ------------------------------- |
-| `/raw`         | Historical/raw transaction data |
-| `/stream`      | Streaming transaction data      |
-| `/processed`   | Cleaned and processed data      |
-| `/features`    | Feature-engineered data         |
-| `/models`      | Trained ML models               |
-| `/predictions` | Fraud prediction results        |
 
 ---
 
-##  PostgreSQL Serving Layer
+### PostgreSQL
 
-PostgreSQL is used as the serving database for downstream analytics.
+PostgreSQL acts as the serving/analytical database for fraud predictions.
 
-The main prediction data is stored in:
+Main tables include:
 
 ```text
 predictions
+alerts
 ```
 
-The database also provides analytical views such as:
-
-```text
-fraud_rate_over_time
-top_fraudulent_merchants
-fraud_by_country
-fraud_by_card_type
-```
-
-These views can be connected directly to Superset for visualization.
+Additional SQL views are used by Superset for dashboard reporting.
 
 ---
 
-##  Visualization — Apache Superset
+##  Apache Superset
 
-Apache Superset provides the analytics and dashboard layer.
+Superset provides the monitoring and analytics layer.
 
-The Superset instance is pre-configured to connect to the PostgreSQL serving database.
-
-Possible dashboard metrics include:
+The dashboard exposes key fraud metrics such as:
 
 * Total transactions
-* Fraudulent transactions
+* Fraud transactions
 * Fraud rate
-* Fraud over time
-* Fraud by country
-* Fraud by card type
-* Top fraudulent merchants
-* High-risk transactions
+* Total transaction amount
+* Fraud amount
+* Critical alerts
+* Suspicious transactions
+* Merchant-level fraud analysis
 
-Superset:
+Superset reads the live analytical data from PostgreSQL.
+
+---
+
+##  Apache Airflow
+
+Airflow provides the orchestration layer.
+
+The main DAG is:
 
 ```text
+pipeline_fraud_detection
+```
+
+The workflow is:
+
+```text
+ensure_hdfs_dirs
+        ↓
+check_pipeline_health
+        ↓
+train_or_update_model
+        ↓
+notify_dashboards_ready
+```
+
+The DAG is scheduled weekly.
+
+The training task uses the same official Spark training script used by the project:
+
+```text
+spark/apps/train_fraud_model.py
+```
+
+This keeps scheduled retraining consistent with the model used by the streaming inference service.
+
+---
+
+##  Docker
+
+All major project services are containerized using Docker Compose.
+
+The stack includes:
+
+```text
+Kafka
+Kafka UI
+Spark Master
+Spark Worker
+Spark Streaming Job
+Hadoop NameNode
+Hadoop DataNode
 PostgreSQL
-     ↓
-   Superset
-     ↓
-Dashboards & Analytics
+Superset
+Airflow
+Jupyter
+Producer
 ```
 
 ---
 
-##  Orchestration — Apache Airflow
-
-Apache Airflow is used to orchestrate the project workflows.
-
-The main fraud detection DAG is:
-
-```text
-airflow/dags/pipeline_fraud_detection.py
-```
-
-The project also contains:
-
-```text
-airflow/dags/pipeline_hdfs_kafka_spark.py
-```
-
-Airflow can be used to automate tasks such as:
-
-* Preparing HDFS directories.
-* Producing data.
-* Running Spark batch jobs.
-* Retraining the fraud detection model.
-
-The fraud detection workflow is designed for scheduled model retraining.
-
----
-
-#  Getting Started
+# ▶️ Running the Project
 
 ## Prerequisites
 
-Make sure the following are installed:
+Install:
 
-* Docker
+* Docker Desktop
 * Docker Compose
 * Git
 
-A machine with approximately **16 GB RAM** is recommended for running the complete stack locally.
+Make sure Docker Desktop is running.
 
 ---
 
-## 1. Clone the Repository
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/youseifsamirshabaan/credit-card-fraud-detection.git
+git clone <repository-url>
 cd credit-card-fraud-detection
 ```
 
 ---
 
-## 2. Start the Platform
+## 2. Configure environment variables
+
+Create a local `.env` file.
+
+Do not commit `.env` to GitHub because it contains local configuration and credentials.
+
+The repository intentionally ignores:
+
+```text
+.env
+data/credit_card_fraud.csv
+airflow/logs/
+__pycache__/
+.ipynb_checkpoints/
+```
+
+---
+
+## 3. Start the complete stack
 
 ```bash
 docker compose up -d --build
 ```
 
-Check the running services:
+Check the services:
 
 ```bash
 docker compose ps
 ```
 
+All required services should be running.
+
 ---
 
-## 3. Train the Fraud Detection Model
+## 4. Access the services
 
-On the first run, the streaming service requires a trained model.
-
-After the producer has loaded the historical data into HDFS, run:
-
-```bash
-docker compose run --rm spark-streaming-job \
-  /spark/bin/spark-submit \
-  /opt/spark-apps/train_fraud_model.py
-```
-
-The model will be stored at:
+### Superset
 
 ```text
-hdfs://namenode:9000/models/fraud_model
+http://localhost:8088
+```
+
+### Airflow
+
+```text
+http://localhost:8082
+```
+
+### Kafka UI
+
+```text
+http://localhost:8090
+```
+
+### Spark Master UI
+
+```text
+http://localhost:8080
+```
+
+### Spark Worker UI
+
+```text
+http://localhost:8081
+```
+
+### Jupyter
+
+```text
+http://localhost:8888
 ```
 
 ---
 
-## 4. Restart the Streaming Pipeline
+##  End-to-End Pipeline Test
 
-After training the model:
+After starting the stack, verify the complete flow:
 
-```bash
-docker compose restart spark-streaming-job
+```text
+CSV
+ ↓
+Python Producer
+ ↓
+Kafka
+ ↓
+Spark Structured Streaming
+ ↓
+Random Forest ML Model
+ ↓
+Fraud Prediction
+ ↓
+HDFS + PostgreSQL + Kafka
+ ↓
+Superset Dashboard
 ```
 
-The streaming pipeline will then consume transactions from Kafka and perform real-time fraud detection.
+Useful commands:
 
----
-
-#  End-to-End Verification
-
-### Check incoming transactions
+### Check running containers
 
 ```bash
-docker exec -it kafka \
-  /opt/kafka/bin/kafka-console-consumer.sh \
-  --topic transactions_raw \
-  --bootstrap-server kafka:9092 \
-  --max-messages 3
+docker compose ps
 ```
 
-### Check fraud predictions
+### Check Producer logs
 
 ```bash
-docker exec -it kafka \
-  /opt/kafka/bin/kafka-console-consumer.sh \
-  --topic fraud_predictions \
-  --bootstrap-server kafka:9092 \
-  --max-messages 3
+docker compose logs -f producer
+```
+
+### Check Spark Streaming logs
+
+```bash
+docker compose logs -f spark-streaming-job
+```
+
+### Check HDFS predictions
+
+```bash
+docker compose exec namenode hdfs dfs -ls -h /predictions
 ```
 
 ### Check PostgreSQL predictions
 
 ```bash
-docker exec -it postgres-dw \
-  psql -U fraud_etl -d frauddb \
-  -c "SELECT * FROM predictions ORDER BY processed_at DESC LIMIT 5;"
+docker compose exec postgres-dw \
+psql -U fraud_etl -d frauddb \
+-c "SELECT COUNT(*) AS predictions_count FROM predictions;"
 ```
 
-### Check HDFS
+### Check Kafka topics
 
 ```bash
-docker exec -it namenode \
-  hdfs dfs -ls /
-```
-
-### Check streaming logs
-
-```bash
-docker compose logs -f spark-streaming-job
+docker compose exec kafka \
+kafka-topics.sh --bootstrap-server kafka:9092 --list
 ```
 
 ---
 
-#  Service URLs
+##  Important Notes
 
-After starting the project, the main services are available at:
-
-| Service       | URL                   |
-| ------------- | --------------------- |
-| HDFS NameNode | http://localhost:9870 |
-| HDFS DataNode | http://localhost:9864 |
-| Spark Master  | http://localhost:8080 |
-| Spark Worker  | http://localhost:8081 |
-| JupyterLab    | http://localhost:8888 |
-| Kafka UI      | http://localhost:8090 |
-| Airflow       | http://localhost:8082 |
-| Superset      | http://localhost:8088 |
-| PostgreSQL    | `localhost:5433`      |
-
-Default development credentials are configured through the project's environment configuration.
-
-**Do not commit `.env` or production credentials to the repository.**
-
----
-
-#  Project Verification
-
-The complete pipeline was successfully tested locally.
-
-The integration test verified:
-
-```text
-Producer
-   ↓
-Kafka
-   ↓
-Spark Structured Streaming
-   ↓
-MLlib Model
-   ↓
-Fraud Prediction
-   ↓
-HDFS / PostgreSQL / Kafka
-```
-
-During testing, the producer successfully sent thousands of transactions to Kafka, while the Spark streaming application continuously processed incoming batches.
-
-Example Spark streaming batches included:
-
-```text
-[batch 1] 31 transactions
-[batch 2] 81 transactions
-[batch 3] 69 transactions
-[batch 4] 74 transactions
-[batch 5] 75 transactions
-...
-```
-
-The trained model was successfully saved to:
-
-```text
-hdfs://namenode:9000/models/fraud_model
-```
-
-This confirms that the core real-time processing pipeline is operational.
-
----
-
-#  Additional Big Data Components
-
-The repository also contains educational Big Data examples demonstrating:
-
-### Batch Processing
-
-```text
-spark/apps/batch_wordcount.py
-```
-
-### Kafka → HDFS Streaming
-
-```text
-spark/apps/streaming_kafka_to_hdfs.py
-```
-
-### Spark SQL
-
-```text
-spark/apps/spark_sql_demo.py
-```
-
-These examples complement the main fraud detection pipeline and demonstrate fundamental Big Data processing concepts.
-
----
-
-#  Data & Security
-
-The actual transaction dataset is intentionally **not committed to GitHub**.
-
-The repository uses `.gitignore` rules to prevent committing:
-
-```text
-.env
-*.csv
-*.zip
-*.parquet
-airflow/logs/
-```
-
-This keeps credentials, potentially sensitive datasets, and generated runtime files outside the public repository.
-
-For local development, refer to:
-
-```text
-data/README.md
-```
-
-for dataset information and setup instructions.
-
----
-
-#  Useful Docker Commands
-
-### View running containers
-
-```bash
-docker compose ps
-```
-
-### View logs
-
-```bash
-docker compose logs -f
-```
-
-### View specific service logs
-
-```bash
-docker compose logs -f producer
-docker compose logs -f spark-streaming-job
-docker compose logs -f kafka
-```
-
-### Stop the project
-
-```bash
-docker compose down
-```
-
-This stops and removes the containers while keeping persistent Docker volumes.
-
-### Full reset
+### Do not use
 
 ```bash
 docker compose down -v
 ```
 
->  This removes the project's persistent volumes, including stored HDFS, Kafka, PostgreSQL, and Superset data.
+during normal project operation.
 
----
+The `-v` option removes Docker volumes and can delete persisted project data.
 
-#  Project Objectives
+To stop the stack safely:
 
-The project demonstrates how Big Data technologies can be combined to build a real-time Machine Learning application.
-
-The main objectives are:
-
-* Implement real-time data ingestion using Kafka.
-* Process streaming data using Spark Structured Streaming.
-* Apply distributed data processing concepts.
-* Perform feature engineering using Spark.
-* Train and evaluate a Machine Learning model using Spark MLlib.
-* Detect potentially fraudulent transactions in real time.
-* Store large-scale data using HDFS.
-* Provide a serving layer using PostgreSQL.
-* Build analytics dashboards using Superset.
-* Automate workflows using Airflow.
-* Containerize the complete system using Docker Compose.
-
----
-
-#  Team
-
-This project was developed as part of the **NTI Big Data Training / Graduation Project**.
-
-### Team Roles
-
-| Team Member | Responsibility                                                                 |
-| ----------- | ------------------------------------------------------------------------------ |
-| Youseif     | Team Leader, System Integration, Architecture, Git/GitHub, Docker & Deployment |
-| Yasmin      | Data Ingestion, Python Producer & Kafka                                        |
-| Hadeer      | Spark Structured Streaming & Stream Processing                                 |
-| Ahmed       | Spark Batch, HDFS/PostgreSQL Integration & Visualization                       |
-| Hania       | Machine Learning, Feature Engineering & Model Training                         |
-
----
-
-#  Documentation
-
-The detailed project plan is available in:
-
-```text
-docs/PROJECT_PLAN.md
+```bash
+docker compose down
 ```
 
-It contains the project planning, architecture, responsibilities, and implementation details.
+To start it again:
+
+```bash
+docker compose up -d
+```
 
 ---
 
-#  Future Improvements
+##  Current Project Status
 
-Possible future improvements include:
-
-* Compare multiple ML algorithms and optimize the fraud classifier.
-* Improve model performance through advanced feature engineering.
-* Add model monitoring and drift detection.
-* Add authentication and role-based access to dashboards.
-* Deploy the system on a cloud-based Big Data platform.
-* Introduce multiple Kafka brokers for higher availability.
-* Add automated model validation before deployment.
-* Add real-time monitoring and notification services.
-* Implement CI/CD for automated testing and deployment.
-
----
-
-#  Conclusion
-
-This project demonstrates a complete **end-to-end Big Data and Machine Learning pipeline** for real-time credit card fraud detection.
-
-By combining **Kafka, Spark, MLlib, HDFS, PostgreSQL, Superset, Airflow, and Docker**, the system provides a practical architecture for ingesting, processing, predicting, storing, and visualizing transaction data in near real time.
+| Component              | Status |
+| ---------------------- | ------ |
+| Docker Compose         | ✅      |
+| Python Producer        | ✅      |
+| Kafka                  | ✅      |
+| Spark Streaming        | ✅      |
+| Spark MLlib            | ✅      |
+| Random Forest Model    | ✅      |
+| HDFS                   | ✅      |
+| PostgreSQL             | ✅      |
+| Superset               | ✅      |
+| Airflow                | ✅      |
+| End-to-End Integration | ✅      |
+| GitHub Repository      | ✅      |
 
 ---
 
-## Technologies
+##  Project Objective
+
+The final system demonstrates how a real-world fraud detection workflow can be implemented using a modern Big Data architecture.
+
+Instead of processing transactions only as a static batch, the system provides a streaming-oriented architecture where incoming transactions can be:
+
+**ingested → processed → scored → stored → monitored**
+
+using distributed and containerized technologies.
+
+---
+
+##  Team
+
+**Credit Card Fraud Detection System**
+
+Youseif (Leader)
+Ahmed
+Hadeer
+Yasmein
+Hania
+
+Big Data / Data Engineering Graduation Project
+
+Technologies:
 
 ```text
-Python
-Apache Kafka
-Apache Spark
-Spark Structured Streaming
+Kafka
+Spark
+Hadoop / HDFS
 Spark MLlib
-Apache Hadoop
-HDFS
-Apache Airflow
 PostgreSQL
-Apache Superset
-JupyterLab
+Superset
+Airflow
 Docker
-Docker Compose
+Python
 ```
+
+---
+
+##  Future Improvements
+
+Possible future enhancements include:
+
+* Training the final model on the complete historical dataset
+* Hyperparameter tuning
+* Advanced fraud detection models
+* Model monitoring and drift detection
+* Better alert notification mechanisms
+* Additional Superset visualizations
+* Kafka replication across multiple brokers
+* Cloud deployment
+* CI/CD automation
