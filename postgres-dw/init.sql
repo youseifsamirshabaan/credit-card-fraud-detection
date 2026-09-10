@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS predictions (
     amount              DOUBLE PRECISION,
     merchant_id         VARCHAR(32),
     merchant_category   VARCHAR(64),
+    merchant_location   VARCHAR(64),
     card_type           VARCHAR(32),
     country             VARCHAR(8),
     fraud_probability   DOUBLE PRECISION,
