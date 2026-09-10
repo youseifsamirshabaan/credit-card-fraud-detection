@@ -23,6 +23,7 @@ def import_fraud_dashboard():
     with app.app_context():
         from superset import db, security_manager
         from superset.models.core import Database
+        from superset.models.slice import Slice
         from superset.commands.dashboard.importers.v1 import ImportDashboardsCommand
 
         print("Setting admin context for Superset import...")
@@ -62,6 +63,15 @@ def import_fraud_dashboard():
         cmd = ImportDashboardsCommand(contents, overwrite=True)
         cmd.run()
         print("Dashboard metadata imported successfully.")
+
+        # Cleanup orphan "Transactions Over Time" slice if present from older versions
+        tot_slice = db.session.query(Slice).filter(
+            (Slice.slice_name == "Transactions Over Time") | (Slice.id == 8)
+        ).first()
+        if tot_slice:
+            db.session.delete(tot_slice)
+            db.session.commit()
+            print("Removed orphan 'Transactions Over Time' slice from database.")
 
         # 3. Ensure database connection 'Fraud Serving DB' uses dynamic URI from env vars
         pg_user = os.environ.get("POSTGRES_DW_USER", "fraud_etl")
