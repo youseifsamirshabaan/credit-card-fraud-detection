@@ -5,7 +5,7 @@ def main():
     spark = SparkSession.builder.appName("InspectFraudData").getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
 
-    RAW_PATH = "hdfs://namenode:9000/raw/credit_card_fraud.csv"
+    RAW_PATH = "hdfs://namenode:9000/raw/creditcard_transactions_historical.csv"
 
     print("Reading data...")
     df = spark.read.option("header", "true").option("inferSchema", "true").csv(RAW_PATH)

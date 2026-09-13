@@ -13,7 +13,7 @@ from pyspark.sql.functions import col, to_timestamp, hour
 from pyspark.sql.types import DoubleType, IntegerType
 
 MODEL_PATH = "hdfs://namenode:9000/models/fraud_model"
-RAW_PATH = "hdfs://namenode:9000/raw/credit_card_fraud.csv"
+RAW_PATH = "hdfs://namenode:9000/raw/creditcard_transactions_historical.csv"
 
 MODEL_NUMERIC_COLS = [
     "transaction_amount",

@@ -127,7 +127,7 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
 
     print(f"Reading dataset from {RAW_PATH}...")
-    df = spark.read.option("header", "true").option("inferSchema", "true").csv(RAW_PATH).limit(1000000)  # Limit to 1M rows for faster training in this example
+    df = spark.read.option("header", "true").option("inferSchema", "false").csv(RAW_PATH).limit(1000000)  # Limit to 1M rows for faster training in this example
 
     # Cast numeric columns to double
     for c in NUMERIC_COLS:
@@ -204,7 +204,7 @@ def main():
     model.write().overwrite().save(MODEL_PATH)
     print(f"Model saved to {MODEL_PATH}")
 
-    spark.sparkContext.parallelize([json.dumps(metrics)]).coalesce(1).saveAsTextFile(
+    spark.createDataFrame([(json.dumps(metrics),)], ["value"]).write.mode("overwrite").text(
         f"{FEATURES_DIR}/metrics_rf"
     )
 

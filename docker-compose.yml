@@ -221,6 +221,7 @@ services:
   airflow-scheduler:
     image: bigdata-lab-airflow:local
     container_name: airflow-scheduler
+    hostname: airflow-scheduler
     restart: unless-stopped
     depends_on:
       airflow-init:
@@ -246,7 +247,7 @@ services:
       context: ./producer
     container_name: producer
     hostname: producer
-    restart: unless-stopped
+    restart: on-failure
     depends_on:
       kafka-topics-init:
         condition: service_completed_successfully

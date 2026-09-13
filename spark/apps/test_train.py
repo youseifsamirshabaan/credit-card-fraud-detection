@@ -9,7 +9,7 @@ from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when
 
-RAW_PATH = "hdfs://namenode:9000/raw/credit_card_fraud.csv"
+RAW_PATH = "hdfs://namenode:9000/raw/creditcard_transactions_historical.csv"
 MODEL_PATH = "hdfs://namenode:9000/models/fraud_model"
 FEATURES_DIR = "hdfs://namenode:9000/features"
 

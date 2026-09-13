@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 
 MODEL_PATH = "hdfs://namenode:9000/models/fraud_model"
-RAW_PATH = "hdfs://namenode:9000/raw/credit_card_fraud.csv"
+RAW_PATH = "hdfs://namenode:9000/raw/creditcard_transactions_historical.csv"
 
 NUMERIC_COLS = [
     "transaction_amount",
